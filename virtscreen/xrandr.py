@@ -121,6 +121,9 @@ class XRandR(SubprocessWrapper):
             pos = '--preferred'
         else:
             raise RuntimeError("Incorrect position option selected.")
+        if self.virt.name != "VIRTUAL1":
+            if "HDMI-" in self.virt.name: kern_face = self.virt.name.replace("-","-A-")
+            self.run(f"pkexec tee /sys/kernel/debug/dri/0/{kern_face}/force", "on")
         self.check_output(f"xrandr --output {self.virt.name} --mode {self.mode_name}")
         self.check_output("sleep 5")
         self.check_output(f"xrandr --output {self.virt.name} {pos}")
@@ -133,7 +136,11 @@ class XRandR(SubprocessWrapper):
             self.mode_name
         except AttributeError:
             return
+        if self.virt.name != "VIRTUAL1":
+            if "HDMI-" in self.virt.name: kern_face = self.virt.name.replace("-","-A-")
+            self.run(f"pkexec tee /sys/kernel/debug/dri/0/{kern_face}/force", "off")
         self.run(f"xrandr --output {self.virt.name} --off")
         self.run(f"xrandr --delmode {self.virt.name} {self.mode_name}")
+        self.run(f"xrandr --rmmode {self.mode_name}")
         atexit.unregister(self.delete_virtual_screen)
         self._update_screens()
