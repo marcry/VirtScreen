@@ -33,14 +33,12 @@ Dialog {
         anchors.fill: parent
 
         RowLayout {
-            anchors.left: parent.left
-            anchors.right: parent.right
+            Layout.fillWidth: true
             Label { id: displaySettingAppLabel; text: "Display setting program"; }
             ComboBox {
                 id: displaySettingAppComboBox
-                anchors.left: displaySettingAppLabel.right
-                anchors.right: parent.right
-                anchors.leftMargin: 10
+                Layout.fillWidth: true
+                Layout.leftMargin: 10
                 textRole: "name"
                 onActivated: function(index) {
                     settings.displaySettingApp = model[index].value;
@@ -54,14 +52,12 @@ Dialog {
         }
 
         RowLayout {
-            anchors.left: parent.left
-            anchors.right: parent.right
+            Layout.fillWidth: true
             Label { id: themeColorLabel; text: "Theme Color"; }
             ComboBox {
                 id: themeColorComboBox
-                anchors.left: themeColorLabel.right
-                anchors.right: parent.right
-                anchors.leftMargin: 50
+                Layout.fillWidth: true
+                Layout.leftMargin: 50
                 Material.background: currentIndex
                 Material.foreground: "white"
                 textRole: "name"
