@@ -106,7 +106,7 @@ Item {
             window.onVisibleChanged.connect(function(visible) {
                 if (!visible) {
                     console.log("Unloading ApplicationWindow...");
-                    mainLoader.active = false;
+                    mainLoader != null ? mainLoader.active = false : null;
                 }
             });
             // Move window to the corner of the primary display
