@@ -18,14 +18,14 @@ Dialog {
         anchors.fill: parent
 
         RowLayout {
-            anchors.left: parent.left
-            anchors.right: parent.right
+            // use layout properties instead of anchors to avoid warnings
+            Layout.fillWidth: true
+
             Label { id: deviceLabel; text: "Device"; }
             ComboBox {
                 id: deviceComboBox
-                anchors.left: deviceLabel.right
-                anchors.right: parent.right
-                anchors.leftMargin: 100
+                Layout.fillWidth: true
+                Layout.leftMargin: 100
                 textRole: "name"
                 model: backend.screens
                 currentIndex: {
