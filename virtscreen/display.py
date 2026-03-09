@@ -1,6 +1,6 @@
 """Display information data classes"""
 
-from PyQt5.QtCore import QObject, pyqtProperty
+from PySide6.QtCore import QObject, Property as pyqtProperty
 
 
 class Display(object):
@@ -43,7 +43,7 @@ class DisplayProperty(QObject):
     def display(self):
         return self._display
 
-    @pyqtProperty(str, constant=True)
+    @pyqtProperty(str)
     def name(self):
         return self._display.name
 
@@ -51,7 +51,7 @@ class DisplayProperty(QObject):
     def name(self, name):
         self._display.name = name
 
-    @pyqtProperty(bool, constant=True)
+    @pyqtProperty(bool)
     def primary(self):
         return self._display.primary
 
@@ -59,7 +59,7 @@ class DisplayProperty(QObject):
     def primary(self, primary):
         self._display.primary = primary
 
-    @pyqtProperty(bool, constant=True)
+    @pyqtProperty(bool)
     def connected(self):
         return self._display.connected
 
@@ -67,7 +67,7 @@ class DisplayProperty(QObject):
     def connected(self, connected):
         self._display.connected = connected
 
-    @pyqtProperty(bool, constant=True)
+    @pyqtProperty(bool)
     def active(self):
         return self._display.active
 
@@ -75,7 +75,7 @@ class DisplayProperty(QObject):
     def active(self, active):
         self._display.active = active
 
-    @pyqtProperty(int, constant=True)
+    @pyqtProperty(int)
     def width(self):
         return self._display.width
 
@@ -83,7 +83,7 @@ class DisplayProperty(QObject):
     def width(self, width):
         self._display.width = width
 
-    @pyqtProperty(int, constant=True)
+    @pyqtProperty(int)
     def height(self):
         return self._display.height
 
@@ -91,7 +91,7 @@ class DisplayProperty(QObject):
     def height(self, height):
         self._display.height = height
 
-    @pyqtProperty(int, constant=True)
+    @pyqtProperty(int)
     def x_offset(self):
         return self._display.x_offset
 
@@ -99,7 +99,7 @@ class DisplayProperty(QObject):
     def x_offset(self, x_offset):
         self._display.x_offset = x_offset
 
-    @pyqtProperty(int, constant=True)
+    @pyqtProperty(int)
     def y_offset(self):
         return self._display.y_offset
 

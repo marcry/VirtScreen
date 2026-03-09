@@ -95,7 +95,7 @@ ColumnLayout {
             onClicked: {
                 busyDialog.open();
                 window.autoClose = false;
-                if (backend.vncState != Backend.OFF) {
+                if (backend.vncState != backend.OFF) {
                     console.log("vnc is running");
                     stopVNC();
                     var restoreVNC = true;

@@ -14,7 +14,7 @@ ColumnLayout {
     GroupBox {
         title: "VNC Server"
         Layout.fillWidth: true
-        enabled: backend.vncState == Backend.OFF ? true : false
+    enabled: backend.vncState == backend.OFF ? true : false
         ColumnLayout {
             anchors.left: parent.left
             anchors.right: parent.right
@@ -77,7 +77,7 @@ ColumnLayout {
             checked: autostart
             onToggled: {
                 autostart = checked;
-                if ((checked == true) && (backend.vncState == Backend.OFF) && 
+                if ((checked == true) && (backend.vncState == backend.OFF) && 
                         backend.virtScreenCreated) {
                     startVNC();
                 }

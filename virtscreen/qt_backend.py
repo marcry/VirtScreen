@@ -10,10 +10,10 @@ import time
 import logging
 from typing import Callable
 
-from PyQt5.QtCore import QObject, pyqtProperty, pyqtSlot, pyqtSignal, Q_ENUMS
-from PyQt5.QtGui import QCursor
-from PyQt5.QtQml import QQmlListProperty
-from PyQt5.QtWidgets import QApplication
+from PySide6.QtCore import QObject, Property, Slot, Signal
+from PySide6.QtGui import QCursor
+from PySide6.QtQml import qmlRegisterType
+from PySide6.QtWidgets import QApplication
 from netifaces import interfaces, ifaddresses, AF_INET
 
 from .display import DisplayProperty
@@ -33,14 +33,13 @@ class Backend(QObject):
         WAITING = 2
         CONNECTED = 3
 
-    Q_ENUMS(VNCState)
-
     # Signals
-    onVirtScreenCreatedChanged = pyqtSignal(bool)
-    onVncUsePasswordChanged = pyqtSignal(bool)
-    onVncStateChanged = pyqtSignal(VNCState)
-    onDisplaySettingClosed = pyqtSignal()
-    onError = pyqtSignal(str)
+    onVirtScreenCreatedChanged = Signal(bool)
+    onVncUsePasswordChanged = Signal(bool)
+    onVncStateChanged = Signal(int)
+    onDisplaySettingClosed = Signal()
+    onError = Signal(str)
+    onSettingsChanged = Signal()
 
     def __init__(self, parent=None, logger=logging.info, error_logger=logging.error):
         super(Backend, self).__init__(parent)
@@ -103,17 +102,38 @@ class Backend(QObject):
         self.onError.emit(msg)
 
     # Qt properties
-    @pyqtProperty(str, constant=True)
-    def settings(self):
+    def _get_settings(self):
         with open(CONFIG_PATH, "r") as f:
             return f.read()
 
-    @settings.setter
-    def settings(self, json_str):
+    def _set_settings(self, json_str):
         with open(CONFIG_PATH, "w") as f:
             f.write(json_str)
+        # notify QML that settings changed
+        try:
+            self.onSettingsChanged.emit()
+        except Exception:
+            pass
+    settings = Property(str, _get_settings, _set_settings, notify=onSettingsChanged)
 
-    @pyqtProperty(bool, notify=onVirtScreenCreatedChanged)
+    # Expose VNCState enum values as instance-level constant properties
+    @Property(int, constant=True)
+    def OFF(self):
+        return self.VNCState.OFF
+
+    @Property(int, constant=True)
+    def ERROR(self):
+        return self.VNCState.ERROR
+
+    @Property(int, constant=True)
+    def WAITING(self):
+        return self.VNCState.WAITING
+
+    @Property(int, constant=True)
+    def CONNECTED(self):
+        return self.VNCState.CONNECTED
+
+    @Property(bool, notify=onVirtScreenCreatedChanged)
     def virtScreenCreated(self):
         return self._virtScreenCreated
 
@@ -122,15 +142,21 @@ class Backend(QObject):
         self._virtScreenCreated = value
         self.onVirtScreenCreatedChanged.emit(value)
 
-    @pyqtProperty(QQmlListProperty, constant=True)
+    @Property(list, constant=True)
     def screens(self):
         try:
-            return QQmlListProperty(DisplayProperty, self, [DisplayProperty(x) for x in self.xrandr.screens])
+            # Cache DisplayProperty objects as QObjects with self as parent
+            try:
+                self._screen_props = [DisplayProperty(x, self) for x in self.xrandr.screens]
+            except Exception:
+                # fallback without parent
+                self._screen_props = [DisplayProperty(x) for x in self.xrandr.screens]
+            return self._screen_props
         except RuntimeError as e:
             self.promptError(str(e))
-            return QQmlListProperty(DisplayProperty, self, [])
+            return []
 
-    @pyqtProperty(bool, notify=onVncUsePasswordChanged)
+    @Property(bool, notify=onVncUsePasswordChanged)
     def vncUsePassword(self):
         if os.path.isfile(X11VNC_PASSWORD_PATH):
             self._vncUsePassword = True
@@ -144,7 +170,7 @@ class Backend(QObject):
         self._vncUsePassword = use
         self.onVncUsePasswordChanged.emit(use)
 
-    @pyqtProperty(VNCState, notify=onVncStateChanged)
+    @Property(int, notify=onVncStateChanged)
     def vncState(self):
         return self._vncState
 
@@ -154,7 +180,7 @@ class Backend(QObject):
         self.onVncStateChanged.emit(self._vncState)
 
     # Qt Slots
-    @pyqtSlot(str, int, int, bool, bool)
+    @Slot(str, int, int, bool, bool)
     def createVirtScreen(self, device, width, height, portrait, hidpi, pos=''):
         self.xrandr.virt_name = device
         self.log("Creating a Virtual Screen...")
@@ -169,7 +195,7 @@ class Backend(QObject):
         self.virtScreenCreated = True
         self.log("The Virtual Screen successfully created.")
 
-    @pyqtSlot()
+    @Slot()
     def deleteVirtScreen(self):
         self.log("Deleting the Virtual Screen...")
         if self.vncState is not self.VNCState.OFF:
@@ -183,7 +209,7 @@ class Backend(QObject):
             return
         self.virtScreenCreated = False
 
-    @pyqtSlot(str)
+    @Slot(str)
     def createVNCPassword(self, password):
         if password:
             password += '\n' + password + '\n\n'  # verify + confirm
@@ -197,7 +223,7 @@ class Backend(QObject):
         else:
             self.promptError("Empty password")
 
-    @pyqtSlot()
+    @Slot()
     def deleteVNCPassword(self):
         if os.path.isfile(X11VNC_PASSWORD_PATH):
             os.remove(X11VNC_PASSWORD_PATH)
@@ -205,7 +231,7 @@ class Backend(QObject):
         else:
             self.promptError("Failed deleting the password file")
 
-    @pyqtSlot(int)
+    @Slot(int)
     def startVNC(self, port):
         # Check if a virtual screen created
         if not self.virtScreenCreated:
@@ -270,7 +296,7 @@ class Backend(QObject):
         # auto stop on exit
         atexit.register(self.stopVNC, force=True)
 
-    @pyqtSlot(str)
+    @Slot(str)
     def openDisplaySetting(self, app: str = "arandr"):
         # define callbacks
         def _connected():
@@ -305,7 +331,7 @@ class Backend(QObject):
                          'if you wish to add a display settings\n'
                          'program for your Desktop Environment.')
 
-    @pyqtSlot()
+    @Slot()
     def stopVNC(self, force=False):
         if force:
             # Usually called from atexit().
@@ -316,12 +342,12 @@ class Backend(QObject):
         else:
             self.promptError("stopVNC called while it is not running")
 
-    @pyqtSlot()
+    @Slot()
     def clearCache(self):
         # engine.clearComponentCache()
         pass
 
-    @pyqtSlot()
+    @Slot()
     def quitProgram(self):
         self.blockSignals(True)  # This will prevent invoking auto-restart or etc.
         QApplication.instance().quit()
@@ -333,12 +359,12 @@ class Cursor(QObject):
     def __init__(self, parent=None):
         super(Cursor, self).__init__(parent)
 
-    @pyqtProperty(int)
+    @Property(int)
     def x(self):
         cursor = QCursor().pos()
         return cursor.x()
 
-    @pyqtProperty(int)
+    @Property(int)
     def y(self):
         cursor = QCursor().pos()
         return cursor.y()
@@ -346,13 +372,14 @@ class Cursor(QObject):
 
 class Network(QObject):
     """ Backend class for network interfaces """
-    onIPAddressesChanged = pyqtSignal()
+    onIPAddressesChanged = Signal()
 
     def __init__(self, parent=None):
         super(Network, self).__init__(parent)
 
-    @pyqtProperty('QStringList', notify=onIPAddressesChanged)
+    @Property(list, notify=onIPAddressesChanged)
     def ipAddresses(self):
+        result = []
         for interface in interfaces():
             if interface == 'lo':
                 continue
@@ -361,4 +388,5 @@ class Network(QObject):
                 continue
             for link in addresses:
                 if link is not None:
-                    yield link['addr']
+                    result.append(link['addr'])
+        return result

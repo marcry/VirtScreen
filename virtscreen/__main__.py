@@ -18,10 +18,10 @@ import ctypes
 from ctypes.util import find_library
 ctypes.CDLL(find_library('GL'), ctypes.RTLD_GLOBAL)
 
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtQml import qmlRegisterType, QQmlApplicationEngine
-from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import Qt, QUrl
+from PySide6.QtWidgets import QApplication
+from PySide6.QtQml import qmlRegisterType, QQmlApplicationEngine
+from PySide6.QtGui import QIcon
+from PySide6.QtCore import Qt, QUrl
 from qasync import QEventLoop
 
 from .display import DisplayProperty
@@ -141,7 +141,7 @@ def main_gui(args: argparse.Namespace):
     asyncio.set_event_loop(loop)
 
     # Check environment first
-    from PyQt5.QtWidgets import QMessageBox, QSystemTrayIcon
+    from PySide6.QtWidgets import QMessageBox, QSystemTrayIcon
     def dialog(message: str) -> None:
         QMessageBox.critical(None, "VirtScreen", message)
     if not QSystemTrayIcon.isSystemTrayAvailable():

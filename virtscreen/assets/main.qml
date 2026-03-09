@@ -32,7 +32,7 @@ Item {
     }
 
     function switchVNC () {
-        if ((backend.vncState == Backend.OFF) && backend.virtScreenCreated) {
+    if ((backend.vncState == backend.OFF) && backend.virtScreenCreated) {
             startVNC();
         }
     }
@@ -51,7 +51,7 @@ Item {
     Backend {
         id: backend
         onVncStateChanged: {
-            if (backend.vncState == Backend.ERROR) {
+            if (backend.vncState == backend.ERROR) {
                 autostart = false;
             }
         }
@@ -129,10 +129,7 @@ Item {
     // Sytray Icon
     SystemTrayIcon {
         id: sysTrayIcon
-        iconSource: backend.vncState == Backend.CONNECTED ? "../icon/systray_tablet_on.png" :
-                    backend.virtScreenCreated ? "../icon/systray_tablet_off.png" :
-                    "../icon/systray_no_tablet.png"
-        visible: true
+    visible: true
         property bool clicked: false
         
         Component.onCompleted: {
