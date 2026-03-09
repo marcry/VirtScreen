@@ -22,6 +22,39 @@ Item {
                                 settings.virt.hidpi);
     }
 
+    function toggleVirtScreen() {
+        // Give a very short delay to show busyDialog.
+        timer.setTimeout (function() {
+            if (!backend.virtScreenCreated) {
+                createVirtScreen();
+            } else {
+                // If auto start enabled, stop VNC first then 
+                if (autostart && (backend.vncState != backend.OFF)) {
+                    autostart = false;
+                    connectOnce(backend.onVncStateChanged, function() {
+                        console.log("autoOff called here", backend.vncState);
+                        if (backend.vncState == backend.OFF) {
+                            console.log("Yes. Delete it");
+                            backend.deleteVirtScreen();
+                            autostart = true;
+                        }
+                    });
+                    stopVNC();
+                } else {
+                    backend.deleteVirtScreen();
+                }
+            }
+        }, 200);
+    }
+
+    function toggleVNC() {
+        if (backend.vncState == backend.OFF) {
+            startVNC();
+        } else {
+            stopVNC();
+        }
+    }
+
     function startVNC () {
         saveSettings();
         backend.startVNC(settings.vnc.port);
@@ -182,30 +215,7 @@ Item {
                 text: backend.virtScreenCreated ? "Disable Virtual Screen" : "Enable Virtual Screen"
                 enabled: autostart ? true :
                          backend.vncState == Backend.OFF ? true : false
-                onTriggered: {
-                    // Give a very short delay to show busyDialog.
-                    timer.setTimeout (function() {
-                        if (!backend.virtScreenCreated) {
-                            createVirtScreen();
-                        } else {
-                            // If auto start enabled, stop VNC first then 
-                            if (autostart && (backend.vncState != Backend.OFF)) {
-                                autostart = false;
-                                connectOnce(backend.onVncStateChanged, function() {
-                                    console.log("autoOff called here", backend.vncState);
-                                    if (backend.vncState == Backend.OFF) {
-                                        console.log("Yes. Delete it");
-                                        backend.deleteVirtScreen();
-                                        autostart = true;
-                                    }
-                                });
-                                stopVNC();
-                            } else {
-                                backend.deleteVirtScreen();
-                            }
-                        }
-                    }, 200);
-                }
+                onTriggered: { toggleVirtScreen(); }
             }
             MenuItem {
                 id: vncAction
@@ -220,7 +230,7 @@ Item {
             }
             MenuItem {
                 text: "Open VirtScreen"
-                onTriggered: sysTrayIcon.onActivated(SystemTrayIcon.Trigger)
+                onTriggered: { mainLoader.active = true }
             }
             MenuItem {
                 id: quitAction

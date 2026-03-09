@@ -27,7 +27,7 @@ from qasync import QEventLoop
 from .display import DisplayProperty
 from .xrandr import XRandR
 from .qt_backend import Backend, Cursor, Network
-from .path import HOME_PATH, ICON_PATH, MAIN_QML_PATH, CONFIG_PATH, LOGGING_PATH
+from .path import HOME_PATH, ICON_PATH, MAIN_QML_PATH, CONFIG_PATH, LOGGING_PATH, DATA_PATH
 
 def error(*args, **kwargs) -> None:
     """Error printing"""
@@ -162,6 +162,14 @@ def main_gui(args: argparse.Namespace):
 
     # Create a component factory and load the QML script.
     engine = QQmlApplicationEngine()
+    # Provide bundled data.json to QML via context property instead of enabling
+    # QML local file XMLHttpRequest (safer).
+    try:
+        with open(DATA_PATH, 'r') as f:
+            app_data = json.load(f)
+    except Exception:
+        app_data = {}
+    engine.rootContext().setContextProperty('appData', app_data)
     engine.load(QUrl(MAIN_QML_PATH))
     if not engine.rootObjects():
         dialog("Failed to load QML")

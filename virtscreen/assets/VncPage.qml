@@ -71,7 +71,7 @@ ColumnLayout {
             text: vncAction.text
             highlighted: true
             enabled: vncAction.enabled
-            onClicked: vncAction.onTriggered()
+            onClicked: toggleVNC()
         }
         CheckBox {
             checked: autostart

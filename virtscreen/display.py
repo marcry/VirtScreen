@@ -1,6 +1,6 @@
 """Display information data classes"""
 
-from PySide6.QtCore import QObject, Property as pyqtProperty
+from PySide6.QtCore import QObject, Signal, Property
 
 
 class Display(object):
@@ -39,70 +39,96 @@ class DisplayProperty(QObject):
         super(DisplayProperty, self).__init__(parent)
         self._display = display
 
+    # Notify signals for QML bindings
+    nameChanged = Signal()
+    primaryChanged = Signal()
+    connectedChanged = Signal()
+    activeChanged = Signal()
+    widthChanged = Signal()
+    heightChanged = Signal()
+    xOffsetChanged = Signal()
+    yOffsetChanged = Signal()
+
     @property
     def display(self):
         return self._display
 
-    @pyqtProperty(str)
-    def name(self):
+    def _get_name(self):
         return self._display.name
 
-    @name.setter
-    def name(self, name):
-        self._display.name = name
+    def _set_name(self, name):
+        if self._display.name != name:
+            self._display.name = name
+            self.nameChanged.emit()
 
-    @pyqtProperty(bool)
-    def primary(self):
+    name = Property(str, _get_name, _set_name, notify=nameChanged)
+
+    def _get_primary(self):
         return self._display.primary
 
-    @primary.setter
-    def primary(self, primary):
-        self._display.primary = primary
+    def _set_primary(self, value):
+        if self._display.primary != value:
+            self._display.primary = value
+            self.primaryChanged.emit()
 
-    @pyqtProperty(bool)
-    def connected(self):
+    primary = Property(bool, _get_primary, _set_primary, notify=primaryChanged)
+
+    def _get_connected(self):
         return self._display.connected
 
-    @connected.setter
-    def connected(self, connected):
-        self._display.connected = connected
+    def _set_connected(self, value):
+        if self._display.connected != value:
+            self._display.connected = value
+            self.connectedChanged.emit()
 
-    @pyqtProperty(bool)
-    def active(self):
+    connected = Property(bool, _get_connected, _set_connected, notify=connectedChanged)
+
+    def _get_active(self):
         return self._display.active
 
-    @active.setter
-    def active(self, active):
-        self._display.active = active
+    def _set_active(self, value):
+        if self._display.active != value:
+            self._display.active = value
+            self.activeChanged.emit()
 
-    @pyqtProperty(int)
-    def width(self):
+    active = Property(bool, _get_active, _set_active, notify=activeChanged)
+
+    def _get_width(self):
         return self._display.width
 
-    @width.setter
-    def width(self, width):
-        self._display.width = width
+    def _set_width(self, value):
+        if self._display.width != value:
+            self._display.width = value
+            self.widthChanged.emit()
 
-    @pyqtProperty(int)
-    def height(self):
+    width = Property(int, _get_width, _set_width, notify=widthChanged)
+
+    def _get_height(self):
         return self._display.height
 
-    @height.setter
-    def height(self, height):
-        self._display.height = height
+    def _set_height(self, value):
+        if self._display.height != value:
+            self._display.height = value
+            self.heightChanged.emit()
 
-    @pyqtProperty(int)
-    def x_offset(self):
+    height = Property(int, _get_height, _set_height, notify=heightChanged)
+
+    def _get_x_offset(self):
         return self._display.x_offset
 
-    @x_offset.setter
-    def x_offset(self, x_offset):
-        self._display.x_offset = x_offset
+    def _set_x_offset(self, value):
+        if self._display.x_offset != value:
+            self._display.x_offset = value
+            self.xOffsetChanged.emit()
 
-    @pyqtProperty(int)
-    def y_offset(self):
+    x_offset = Property(int, _get_x_offset, _set_x_offset, notify=xOffsetChanged)
+
+    def _get_y_offset(self):
         return self._display.y_offset
 
-    @y_offset.setter
-    def y_offset(self, y_offset):
-        self._display.y_offset = y_offset
+    def _set_y_offset(self, value):
+        if self._display.y_offset != value:
+            self._display.y_offset = value
+            self.yOffsetChanged.emit()
+
+    y_offset = Property(int, _get_y_offset, _set_y_offset, notify=yOffsetChanged)

@@ -10,23 +10,18 @@ Dialog {
     modal: true
     visible: true
     standardButtons: Dialog.Ok
-    x: (window.width - width) / 2
-    y: (window.width - height) / 2 
-    width: popupWidth
+    x: (parent ? (parent.width - width) / 2 : 0)
+    y: (parent ? (parent.width - height) / 2 : 0)
+    width: (parent && parent.popupWidth) ? parent.popupWidth : 360
     height: 250
 
     Component.onCompleted: {
-        var request = new XMLHttpRequest();
-        request.open('GET', 'data.json');
-        request.onreadystatechange = function(event) {
-            if (request.readyState == XMLHttpRequest.DONE) {
-                var data = JSON.parse(request.responseText).displaySettingApps;
-                var combobox = displaySettingAppComboBox;
-                combobox.model = Object.keys(data).map(function(k){return data[k]});
-                combobox.currentIndex = Object.keys(data).indexOf(settings.displaySettingApp);
-            }
-        };
-        request.send();
+        // Use the application-provided data context instead of an XHR to
+        // read local files. 'appData' is injected by the Python side.
+        var data = (appData && appData.displaySettingApps) ? appData.displaySettingApps : {};
+        var combobox = displaySettingAppComboBox;
+        combobox.model = Object.keys(data).map(function(k){return data[k]});
+        combobox.currentIndex = Object.keys(data).indexOf(settings.displaySettingApp);
     }
 
     ColumnLayout {

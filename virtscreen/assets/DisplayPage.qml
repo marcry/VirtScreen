@@ -81,7 +81,7 @@ ColumnLayout {
             enabled: virtScreenAction.enabled
             onClicked: {
                 busyDialog.open();
-                virtScreenAction.onTriggered();
+                toggleVirtScreen();
                 connectOnce(backend.onVirtScreenCreatedChanged, function(created) {
                     busyDialog.close();
                 });

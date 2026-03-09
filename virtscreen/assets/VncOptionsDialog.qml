@@ -9,26 +9,20 @@ Dialog {
     modal: true
     visible: true
     standardButtons: Dialog.Ok
-    x: (window.width - width) / 2
-    y: (window.width - height) / 2 
-    width: popupWidth
+    x: (parent ? (parent.width - width) / 2 : 0)
+    y: (parent ? (parent.width - height) / 2 : 0)
+    width: (parent && parent.popupWidth) ? parent.popupWidth : 360
     height: 350
 
     Component.onCompleted: {
-        var request = new XMLHttpRequest();
-        request.open('GET', 'data.json');
-        request.onreadystatechange = function(event) {
-            if (request.readyState == XMLHttpRequest.DONE) {
-                var data = JSON.parse(request.responseText).x11vncOptions;
-                // merge data and settings
-                for (var key in data) {
-                    Object.assign(data[key], settings.x11vncOptions[key]);
-                }
-                var repeater = vncOptionsRepeater;
-                repeater.model = Object.keys(data).map(function(k){return data[k]});
-            }
-        };
-        request.send();
+        // Use injected 'appData' instead of performing local XHR.
+        var data = (appData && appData.x11vncOptions) ? appData.x11vncOptions : {};
+        // merge data and settings
+        for (var key in data) {
+            Object.assign(data[key], settings.x11vncOptions[key]);
+        }
+        var repeater = vncOptionsRepeater;
+        repeater.model = Object.keys(data).map(function(k){return data[k]});
     }
 
     ColumnLayout {

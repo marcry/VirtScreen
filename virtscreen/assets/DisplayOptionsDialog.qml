@@ -9,9 +9,9 @@ Dialog {
     modal: true
     visible: true
     standardButtons: Dialog.Ok
-    x: (window.width - width) / 2
-    y: (window.width - height) / 2 
-    width: popupWidth
+    x: (parent ? (parent.width - width) / 2 : 0)
+    y: (parent ? (parent.width - height) / 2 : 0)
+    width: (parent && parent.popupWidth) ? parent.popupWidth : 360
     height: 250
 
     ColumnLayout {

@@ -97,7 +97,7 @@ ApplicationWindow {
 
                     MenuItem {
                         text: qsTr("&Quit")
-                        onTriggered: quitAction.onTriggered()
+                        onTriggered: { saveSettings(); backend.quitProgram(); }
                     }
                 }
             }
@@ -121,9 +121,10 @@ ApplicationWindow {
     }
 
     footer: ProgressBar {
+        id: footerBar
         z: 1
-        indeterminate: backend.vncState == Backend.WAITING
-        value: backend.vncState == Backend.CONNECTED ? 1 : 0
+        indeterminate: backend.vncState == backend.WAITING
+        value: backend.vncState == backend.CONNECTED ? 1 : 0
     }
 
 
@@ -150,7 +151,7 @@ ApplicationWindow {
         focus: true
         x: (parent.width - width) / 2
         y: (parent.width - height) / 2 //(window.height) / 2 
-        width: popupWidth
+    width: window.popupWidth
         ColumnLayout {
             anchors.fill: parent
             Text {
@@ -168,12 +169,12 @@ ApplicationWindow {
             Text {
                 font { pixelSize: 14 }
                 text: "- <a href='https://github.com/kbumsik/VirtScreen'>Project Website</a>"
-                onLinkActivated: Qt.openUrlExternally(link)
+                onLinkActivated: function(link) { Qt.openUrlExternally(link); }
             }
             Text {
                 font { pixelSize: 14 }
                 text: "- <a href='https://github.com/kbumsik/VirtScreen/issues'>Issues & Bug Report</a>"
-                onLinkActivated: Qt.openUrlExternally(link)
+                onLinkActivated: function(link) { Qt.openUrlExternally(link); }
             }
             Text {
                 font { pixelSize: 14 }
@@ -181,16 +182,16 @@ ApplicationWindow {
                 horizontalAlignment: Text.AlignHCenter
                 lineHeight: 0.7
                 text: "<br/>Copyright © 2018 Bumsik Kim  <a href='https://kbumsik.io/'>Homepage</a><br/>"
-                onLinkActivated: Qt.openUrlExternally(link)
+                onLinkActivated: function(link) { Qt.openUrlExternally(link); }
             }
             Text {
                 font { pixelSize: 11 }
                 Layout.alignment: Qt.AlignHCenter
                 horizontalAlignment: Text.AlignHCenter
-                text: "This program comes with absolutely no warranty.<br/>" +
-                      "See the <a href='https://github.com/kbumsik/VirtScreen/blob/master/LICENSE'>" +
-                      "GNU General Public License, version 3</a> for details."
-                onLinkActivated: Qt.openUrlExternally(link)
+            text: "This program comes with absolutely no warranty.<br/>" +
+                "See the <a href='https://github.com/kbumsik/VirtScreen/blob/master/LICENSE'>" +
+                "GNU General Public License, version 3</a> for details."
+            onLinkActivated: function(link) { Qt.openUrlExternally(link); }
             }
         }
     }
@@ -203,7 +204,7 @@ ApplicationWindow {
         standardButtons: Dialog.Ok | Dialog.Cancel
         x: (parent.width - width) / 2
         y: (parent.width - height) / 2 //(window.height) / 2 
-        width: popupWidth
+    width: window.popupWidth
         ColumnLayout {
             anchors.fill: parent
             TextField {
@@ -213,7 +214,7 @@ ApplicationWindow {
                 placeholderText: "New Password";
                 echoMode: TextInput.Password;
             }
-            Keys.onPressed: {
+            Keys.onPressed: function(event) {
                 event.accepted = true;
                 if (event.key == Qt.Key_Return || event.key == Qt.Key_Enter) {
                     passwordDialog.accept();
@@ -235,7 +236,7 @@ ApplicationWindow {
         standardButtons: Dialog.Ok
         x: (parent.width - width) / 2
         y: (parent.width - height) / 2 //(window.height) / 2 
-        width: popupWidth
+    width: window.popupWidth
         height: 310
         ColumnLayout {
             anchors.fill: parent
@@ -278,9 +279,11 @@ ApplicationWindow {
         active: false
         source: "preferenceDialog.qml"
         onLoaded: {
-            item.onClosed.connect(function() {
-                preferenceLoader.active = false;
-            });
+            if (item && item.onClosed) {
+                item.onClosed.connect(function() {
+                    preferenceLoader.active = false;
+                });
+            }
         }
     }
     
@@ -289,9 +292,11 @@ ApplicationWindow {
         active: false
         source: "DisplayOptionsDialog.qml"
         onLoaded: {
-            item.onClosed.connect(function() {
-                displayOptionsLoader.active = false;
-            });
+            if (item && item.onClosed) {
+                item.onClosed.connect(function() {
+                    displayOptionsLoader.active = false;
+                });
+            }
         }
     }
 
@@ -300,18 +305,22 @@ ApplicationWindow {
         active: false
         source: "VncOptionsDialog.qml"
         onLoaded: {
-            item.onClosed.connect(function() {
-                vncOptionsLoader.active = false;
-            });
+            if (item && item.onClosed) {
+                item.onClosed.connect(function() {
+                    vncOptionsLoader.active = false;
+                });
+            }
         }
     }
 
     SwipeView {
-        anchors.top: tabBar.bottom
-        anchors.bottom: parent.bottom
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.margins: margin
+        anchors.fill: parent
+        // Use implicitHeight to avoid oversized spacing caused by toolbar.font.pixelSize
+        // which inflates toolbar.height. implicitHeight reflects the natural size.
+        anchors.topMargin: window.margin
+        anchors.bottomMargin: footerBar.implicitHeight + window.margin
+        anchors.leftMargin: window.margin
+        anchors.rightMargin: window.margin
         clip: true
 
         currentIndex: tabBar.currentIndex
